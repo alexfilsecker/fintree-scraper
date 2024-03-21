@@ -38,7 +38,7 @@ def get_int_amount(amount: str) -> int:
 
 def scrap(rut: str, password: str) -> List[Movement]:
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     driver = webdriver.Chrome(
@@ -65,6 +65,11 @@ def scrap(rut: str, password: str) -> List[Movement]:
 
     my_click(driver, By.XPATH, login_btn_xpath)
 
+    # scrap_new_website(driver)
+    scrap_old_website(driver)
+
+
+def scrap_new_website(driver: WebDriver) -> List[Movement]:
     my_click(driver, By.XPATH, "//div[@id='user-guide-initiator']/div/button")
 
     my_click(
@@ -90,7 +95,7 @@ def scrap(rut: str, password: str) -> List[Movement]:
     table_body = moovements_app.find_element(by=By.TAG_NAME, value="tbody")
 
     rows = table_body.find_elements(by=By.TAG_NAME, value="tr")
-    return_data = []
+    return_data: List[Movement] = []
     for row in rows:
         data = [td.text for td in row.find_elements(by=By.TAG_NAME, value="td")]
         date = data[0]
@@ -101,6 +106,9 @@ def scrap(rut: str, password: str) -> List[Movement]:
         return_data.append(Movement(date, description, debit + credit, balance))
 
     driver.quit()
+
+    for movement in return_data:
+        print(movement)
 
     return return_data
 
