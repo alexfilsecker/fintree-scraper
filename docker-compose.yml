@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: bank-api
+    command: tail -f /dev/null
+    env_file:
+      - .envs/.env.api
+      - .envs/.env.postgres
+    ports:
+      - 8000:8000
+    depends_on:
+      - bank-db
+    networks:
+      - bank-network
+    volumes:
+      - ./scrap.py/:/app/scrap.py
+
+  bank-db:
+    image: postgres:16
+    container_name: bank-postgres
+    env_file:
+      - .envs/.env.postgres
+    ports:
+      - 5432:5432
+    networks:
+      - bank-network
+    volumes:
+      - bank-db-data:/var/lib/postgresql/data
+
+networks:
+  bank-network:
+    driver: bridge
+    name: bank-network
+
+volumes:
+  bank-db-data:
+    driver: local
+    name: bank-db-data
