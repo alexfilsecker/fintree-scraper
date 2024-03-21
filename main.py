@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from threading import Thread
 
-from src.scraper.scrap import scrap
+from scraper.scrap import scrap
 
 app = FastAPI()
 
