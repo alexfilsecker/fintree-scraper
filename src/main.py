@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from threading import Thread
 
-from scraper.scrap import scrap
+from scraper.santander_scraper import SantanderScraper
 
 app = FastAPI()
 
@@ -11,8 +11,7 @@ async def root():
 
     rut = "200719913"
     password = "46@8sA5uqV"
-
-    t = Thread(target=scrap, args=(rut, password))
-    t.start()
+    scraper = SantanderScraper(rut, password, headles=False)
+    scraper.scrap()
 
     return {"message": "Hello World"}
