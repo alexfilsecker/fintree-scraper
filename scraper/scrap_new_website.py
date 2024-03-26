@@ -6,9 +6,9 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-from typing import List
+from .scrap_utils import my_click, get_int_amount, Movement
 
-from src.scraper.scrap import Movement
+from typing import List
 
 
 def scrap_new_website(driver: WebDriver) -> List[Movement]:

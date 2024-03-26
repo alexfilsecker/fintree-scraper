@@ -17,7 +17,7 @@ services:
     networks:
       - bank-network
     volumes:
-      - ./scrap.py/:/app/scrap.py
+      - ./:/app
 
   bank-db:
     image: postgres:16
