@@ -7,8 +7,7 @@ from alembic import context
 
 from typing import Dict, Union
 
-
-import models
+from src import models
 
 import os
 
