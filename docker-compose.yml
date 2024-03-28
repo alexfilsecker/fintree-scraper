@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     container_name: bank-api
-    command: uvicorn main:app --reload --host 0.0.0.0
+    command: uvicorn src.main:app --reload --host 0.0.0.0
     env_file:
       - .envs/.env.api
       - .envs/.env.postgres

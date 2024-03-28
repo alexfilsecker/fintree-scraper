@@ -3,16 +3,17 @@ from selenium.webdriver.support import expected_conditions
 from typing import List
 from selenium.webdriver.support.ui import WebDriverWait
 
-from .scraper import Scraper, Movement
+from .scraper import Scraper, ScrapedMovement
 
 import time
+import datetime
 
 
 class SantanderScraper(Scraper):
 
     url = "https://banco.santander.cl/personas"
 
-    def scrap(self) -> None:
+    def scrap(self) -> List[ScrapedMovement]:
         self.begin_scrap()
         self.login()
         old_page = self.check_for_old_page()
@@ -22,9 +23,6 @@ class SantanderScraper(Scraper):
             movements = self.scrap_new_page()
 
         self.driver.quit()
-
-        for movement in movements:
-            print(movement)
 
         return movements
 
@@ -49,7 +47,7 @@ class SantanderScraper(Scraper):
     def check_for_old_page(self) -> bool:
         return False
 
-    def scrap_old_page(self) -> List[Movement]:
+    def scrap_old_page(self) -> List[ScrapedMovement]:
         self.go_to_frame_2()
         self.go_to_last_movements()
         self.access_frame_p4()
@@ -71,7 +69,7 @@ class SantanderScraper(Scraper):
         self.my_click(By.ID, "CC2")
         self.my_click(By.ID, "UM3")
 
-    def scrap_new_page(self) -> List[Movement]:
+    def scrap_new_page(self) -> List[ScrapedMovement]:
         self.close_greeter()
         self.click_on_first_account()
         self.wait_for_movements()
@@ -103,14 +101,21 @@ class SantanderScraper(Scraper):
             return int(amount.replace(".", "").replace("$", ""))
 
         rows = table_body.find_elements(by=By.TAG_NAME, value="tr")
-        movements: List[Movement] = []
+        movements: List[ScrapedMovement] = []
+        today = datetime.datetime.now().date()
         for row in rows:
             data = [td.text for td in row.find_elements(by=By.TAG_NAME, value="td")]
-            date = data[0]
+            day, month = (int(int_str) for int_str in data[0].split("/"))
+            date = datetime.date(today.year, month, day)
+            if date > today:
+                date = datetime.date(today.year - 1, month, day)
+
             description = data[2]
             debit = get_int_amount(data[3])
             credit = get_int_amount(data[4])
             balance = get_int_amount(data[5])
-            movements.append(Movement(date, description, debit + credit, balance))
+            movements.append(
+                ScrapedMovement(date, description, debit + credit, balance)
+            )
 
         return movements

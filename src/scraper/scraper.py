@@ -7,19 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from typing import List
 
-
-class Movement:
-    def __init__(self, date: str, description: str, amount: int, balance: int):
-        self.date = date
-        self.description = description
-        self.amount = amount
-        self.balance = balance
-
-    def __repr__(self):
-        return f"{self.amount}"
-
-    def __str__(self):
-        return f"{self.date}, {self.description}, {self.amount}, {self.balance}"
+from .scraped_movement import ScrapedMovement
 
 
 class Scraper:
@@ -33,10 +21,13 @@ class Scraper:
         options = webdriver.ChromeOptions()
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+
+        chrome_driver_path = ChromeDriverManager().install()
+
         if headles:
             options.add_argument("--headless")
         self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=options
+            service=Service(chrome_driver_path), options=options
         )
 
     def wait_to_click(self, by: By, value: str) -> None:
@@ -58,5 +49,5 @@ class Scraper:
         else:
             self.driver.maximize_window()
 
-    def scrap(self) -> List[Movement]:
+    def scrap(self) -> List[ScrapedMovement]:
         pass
