@@ -1,36 +1,38 @@
-from typing import List
-from typing import Optional
-from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import sessionmaker
-import os
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-from sqlalchemy import create_engine
+from scrapers.santander import scrap_santander
+from scrapers.commonwealth import scrap_commonwealth
 
-user = os.environ.get("POSTGRES_USER")
-password = os.environ.get("POSTGRES_PASSWORD")
-database = os.environ.get("POSTGRES_DB")
-if not database or not user or not password:
-    raise ValueError("POSTGRES_DB, POSTGRES_USER and POSTGRES_PASSWORD must be set")
-
-engine = create_engine(
-    f"postgresql://{user}:{password}@localhost:5432/{database}", echo=True
-)
-session = sessionmaker(bind=engine, autoflush=False)
+app = FastAPI()
 
 
-class Base(DeclarativeBase):
-    pass
+class SantanderCredentials(BaseModel):
+    rut: str
+    password: str
 
 
-class User(Base):
-    __tablename__ = "user_account"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
+class CommonWealthCredentials(BaseModel):
+    client_number: str
+    password: str
 
-    def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r}"
+
+@app.post("/santander")
+async def post_santander(credentials: SantanderCredentials):
+    movements = scrap_santander(credentials.rut, credentials.password, headless=False)
+    return movements
+
+
+@app.post("/common-wealth")
+async def post_common_wealth(credentials: CommonWealthCredentials):
+    total_pending, pending_movements, non_pending_movements = scrap_commonwealth(
+        credentials.client_number, credentials.password, headless=False
+    )
+
+    return {
+        "pending": {
+            "total": total_pending,
+            "movements": pending_movements,
+        },
+        "non_pending": non_pending_movements,
+    }

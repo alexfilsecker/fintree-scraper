@@ -1,33 +1,23 @@
-from selenium import webdriver
-from selenium.webdriver.remote.webdriver import WebDriver
+from .scrap import start_driver, my_click
+from typing import List
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
-from typing import List
+from selenium.webdriver.remote.webdriver import WebDriver
 
 
-class Movement:
-    def __init__(self, date: str, description: str, amount: int, balance: int):
+class SantanderMovement:
+    def __init__(self, date: str, description: str, ammount: int, balance: int):
         self.date = date
         self.description = description
-        self.amount = amount
+        self.ammount = ammount
         self.balance = balance
 
     def __repr__(self):
-        return f"{self.amount}"
+        return f"{self.ammount}"
 
     def __str__(self):
-        return f"{self.date}, {self.description}, {self.amount}, {self.balance}"
-
-
-def my_click(driver: WebDriver, by: By, value: str):
-    WebDriverWait(driver, 10).until(
-        expected_conditions.element_to_be_clickable((by, value))
-    )
-    driver.find_element(by=by, value=value).click()
+        return f"{self.date}, {self.description}, {self.ammount}, {self.balance}"
 
 
 def get_int_amount(amount: str) -> int:
@@ -36,17 +26,7 @@ def get_int_amount(amount: str) -> int:
     return int(amount.replace(".", "").replace("$", ""))
 
 
-def scrap(rut: str, password: str) -> List[Movement]:
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()), options=options
-    )
-
-    driver.get("https://banco.santander.cl/personas")
-
+def login_santander(driver: WebDriver, rut: str, password: str):
     my_click(driver, By.CLASS_NAME, "btn-ingresar")
 
     rut_input_xpath = "//form[@class='s-login']/div/div/input"
@@ -64,6 +44,15 @@ def scrap(rut: str, password: str) -> List[Movement]:
     password_input.send_keys(password)
 
     my_click(driver, By.XPATH, login_btn_xpath)
+
+
+def scrap_santander(rut: str, password: str, headless: bool) -> List[SantanderMovement]:
+
+    driver = start_driver(headless=headless)
+
+    driver.get("https://banco.santander.cl/personas")
+
+    login_santander(driver, rut, password)
 
     my_click(driver, By.XPATH, "//div[@id='user-guide-initiator']/div/button")
 
@@ -98,14 +87,10 @@ def scrap(rut: str, password: str) -> List[Movement]:
         debit = get_int_amount(data[3])
         credit = get_int_amount(data[4])
         balance = get_int_amount(data[5])
-        return_data.append(Movement(date, description, debit + credit, balance))
+        return_data.append(
+            SantanderMovement(date, description, debit + credit, balance)
+        )
 
     driver.quit()
 
     return return_data
-
-
-if __name__ == "__main__":
-    movements = scrap("200719913", "46@8sA5uqV")
-    for movement in movements:
-        print(movement)
