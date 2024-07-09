@@ -1,42 +1,16 @@
-version: "3"
-
 services:
-  api:
+  fintree-scraper:
+    image: fintree-scraper
+    container_name: fintree-scraper
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: bank-api
-    command: tail -f /dev/null
-    env_file:
-      - .envs/.env.api
-      - .envs/.env.postgres
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
     ports:
-      - 8000:8000
-    depends_on:
-      - bank-db
+      - 8080:8080
     networks:
-      - bank-network
-    volumes:
-      - ./scrap.py/:/app/scrap.py
-
-  bank-db:
-    image: postgres:16
-    container_name: bank-postgres
-    env_file:
-      - .envs/.env.postgres
-    ports:
-      - 5432:5432
-    networks:
-      - bank-network
-    volumes:
-      - bank-db-data:/var/lib/postgresql/data
+      - fintree-network
 
 networks:
-  bank-network:
-    driver: bridge
-    name: bank-network
-
-volumes:
-  bank-db-data:
-    driver: local
-    name: bank-db-data
+  fintree-scraper-network:
+    name: fintree-scraper-network

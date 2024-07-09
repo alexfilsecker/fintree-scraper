@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12.4
 
 RUN apt-get update && apt-get install -y wget unzip && \
     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
@@ -13,3 +13,4 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
+

@@ -17,6 +17,11 @@ class CommonWealthCredentials(BaseModel):
     password: str
 
 
+@app.get("/")
+async def hello_world():
+    return {"message": "Hello World"}
+
+
 @app.post("/santander")
 async def post_santander(credentials: SantanderCredentials):
     movements = scrap_santander(credentials.rut, credentials.password, headless=False)
@@ -26,7 +31,7 @@ async def post_santander(credentials: SantanderCredentials):
 @app.post("/common-wealth")
 async def post_common_wealth(credentials: CommonWealthCredentials):
     total_pending, pending_movements, non_pending_movements = scrap_commonwealth(
-        credentials.client_number, credentials.password, headless=False
+        credentials.client_number, credentials.password, headless=True
     )
 
     return {
