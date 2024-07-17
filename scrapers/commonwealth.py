@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
+from datetime import datetime
 
 
 class CommonWealthMovement:
@@ -17,8 +18,8 @@ class CommonWealthMovement:
         ammount: float,
         balance: float | None = None,
     ):
-        self.date = date
-        self.value_date = value_date
+        self.date = format_date(date)
+        self.value_date = format_date(value_date)
         self.description = description
         self.ammount = ammount
         self.balance = balance
@@ -32,6 +33,13 @@ class CommonWealthMovement:
 
 def get_float_ammount(ammount: str) -> int:
     return float(ammount.replace("$", "").replace(",", ""))
+
+
+def format_date(date: str) -> str:
+    if date.find("/") != -1:
+        return date
+    date_object = datetime.strptime(date, "%a %d %b %Y")
+    return date_object.strftime("%d/%m/%Y")
 
 
 def login_commonwealth(driver: WebDriver, client_number: str, password: str):
