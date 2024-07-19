@@ -94,7 +94,7 @@ def scrap_transactions(
         date_and_description = date_and_description_element.text
         if pending:
             date = date_and_description.split("\n")[0]
-            description = date_and_description.split("\n")[1]
+            description = date_and_description.split("\n")[1].split("PENDING: ")[1]
             value_date = date
         else:
             splited_description = date_and_description.split("Value Date: ")
