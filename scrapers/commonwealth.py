@@ -140,9 +140,13 @@ def scrap_pending_transactions(
     driver: WebDriver,
 ) -> Tuple[int, List[CommonWealthMovement]]:
     pending_transaction_table_id = "pending-transactions-table"
-    pending_transaction_table = driver.find_element(
-        by=By.ID, value=pending_transaction_table_id
-    )
+    try:
+        pending_transaction_table = driver.find_element(
+            by=By.ID, value=pending_transaction_table_id
+        )
+    except NoSuchElementException:
+        return (0, [])
+
     pendign_transaction_table_body = pending_transaction_table.find_element(
         by=By.TAG_NAME, value="tbody"
     )
