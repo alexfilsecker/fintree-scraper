@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     command: python main.py
+    restart: always
     environment:
       - IN_CONTAINER=true
     volumes:
