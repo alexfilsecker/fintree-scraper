@@ -1,23 +1,17 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Response
 import os
+
+from models.credentials import SantanderCredentials, CommonWealthCredentials, FalabellaCredentials
 
 from scrapers.santander import scrap_santander
 from scrapers.commonwealth import scrap_commonwealth
+from scrapers.falabella import FalabellaScraper
+from logger import logger
+
 
 in_container = os.environ.get("IN_CONTAINER", "false") == "true"
 
 app = FastAPI()
-
-
-class SantanderCredentials(BaseModel):
-    rut: str
-    password: str
-
-
-class CommonWealthCredentials(BaseModel):
-    client_number: str
-    password: str
 
 
 @app.get("/")
@@ -47,6 +41,18 @@ async def post_common_wealth(credentials: CommonWealthCredentials):
         "non_pending": non_pending_movements,
     }
 
+@app.post("/falabella")
+async def post_banco_falabella(credentials: FalabellaCredentials): 
+    print("scraping falabella")
+    try:
+        url = "https://www.bancofalabella.cl/"
+        result = FalabellaScraper(url, in_container, credentials).scrap()
+        return result
+    except Exception as e:
+        return Response(
+            content=f"An error occurred: {e}",
+            status_code=500
+        )
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,6 +1,5 @@
 from .scrap import start_driver, my_click
 from typing import List
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.remote.webdriver import WebDriver
