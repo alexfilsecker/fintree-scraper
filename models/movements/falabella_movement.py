@@ -18,18 +18,21 @@ class FalabellaMovementInfo(BaseModel):
     origin: str
 
     def __init__(self, data: Dict[str, str]):
-        installments = self._get_installments(data["installments"])
-        return super().__init__(
-            amount=self._fix_amount(data["amount"]),
-            total_amount=self._fix_amount(data["total_amount"]),
-            current_installment=installments[0],
-            total_installments=installments[1],
-            shop=data["shop"],
-            industry=data["industry"],
-            iso_datetime=self._get_iso_datetime(data["date"], data["time"]),
-            country=data["country"],
-            origin=data["origin"],
-        )
+        try:
+            installments = self._get_installments(data["installments"])
+            return super().__init__(
+                amount=self._fix_amount(data["amount"]),
+                total_amount=self._fix_amount(data["total_amount"]),
+                current_installment=installments[0],
+                total_installments=installments[1],
+                shop=data["shop"],
+                industry=data["industry"],
+                iso_datetime=self._get_iso_datetime(data["date"], data["time"]),
+                country=data["country"],
+                origin=data["origin"],
+            )
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}") from e
 
     def _fix_amount(self, amount_str: str) -> int:
         return int(amount_str.replace(".", "").replace("$", "").replace(",", ""))
