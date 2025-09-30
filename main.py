@@ -1,12 +1,9 @@
 from fastapi import FastAPI, Response
 import os
 
-from models.credentials import SantanderCredentials, CommonWealthCredentials, FalabellaCredentials
+from models.credentials import FalabellaCredentials
 
-from scrapers.santander import scrap_santander
-from scrapers.commonwealth import scrap_commonwealth
 from scrapers.falabella import FalabellaScraper
-from logger import logger
 
 
 in_container = os.environ.get("IN_CONTAINER", "false") == "true"
@@ -17,29 +14,6 @@ app = FastAPI()
 @app.get("/")
 async def hello_world():
     return {"message": "Hello World"}
-
-
-@app.post("/santander")
-async def post_santander(credentials: SantanderCredentials):
-    movements = scrap_santander(
-        credentials.rut, credentials.password, headless=in_container
-    )
-    return movements
-
-
-@app.post("/common-wealth")
-async def post_common_wealth(credentials: CommonWealthCredentials):
-    total_pending, pending_movements, non_pending_movements = scrap_commonwealth(
-        credentials.client_number, credentials.password, headless=in_container
-    )
-
-    return {
-        "pending": {
-            "total": total_pending,
-            "movements": pending_movements,
-        },
-        "non_pending": non_pending_movements,
-    }
 
 @app.post("/falabella")
 async def post_banco_falabella(credentials: FalabellaCredentials): 
