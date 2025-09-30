@@ -3,7 +3,7 @@ import os
 
 from models.credentials import FalabellaCredentials
 
-from scrapers.falabella import FalabellaScraper
+from scrapers.falabella.falabella import FalabellaScraper
 
 
 in_container = os.environ.get("IN_CONTAINER", "false") == "true"
