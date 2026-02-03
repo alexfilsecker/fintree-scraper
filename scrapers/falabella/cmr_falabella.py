@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -20,17 +20,21 @@ class CMRFalabella():
     FIND_MODAL_MAX_TRIES = 30
     FIND_MODAL_DELAY_MS = 100
 
-    MODAL_XPATHS = {
-        "amount": "./div[3]",
-        "total_amount": "./div[4]/div[1]/span[2]",
-        "installments": "./div[4]/div[2]/span[2]",
-        "shop": "./div[4]/div[4]/span[2]",
-        "industry": "./div[4]/div[5]/span[2]",
-        "date": "./div[4]/div[7]/span[2]",
-        "time": "./div[4]/div[8]/span[2]",
-        "country": "./div[4]/div[9]/span[2]",
-        "origin": "./div[4]/div[10]/span[2]",
+
+    MODAL_TITLE_XPATH = ".//h4"
+    MODAL_AMOUNT_XPATH = "./div[3]"
+    MODAL_CONTENT_XPATH = "./div[4]"
+    MODAL_CONTENT_MAPPING = {
+        "Monto total": "total_amount",
+        "Cuotas": "installments",
+        "Comercio": "shop",
+        "Rubro": "industry",
+        "Fecha": "date",
+        "Hora": "time",
+        "Pais": "country",
+        "Origen de la compra": "origin",
     }
+
 
     def __init__(self, driver: Driver):
         self.driver = driver
@@ -122,18 +126,46 @@ class CMRFalabella():
     def _scrap_movements_modal(self):
         modal = self._find_modal()
 
-        content_div = modal.find_element(By.XPATH, "./div/div")
+        modal_div = modal.find_element(By.XPATH, "./div/div")
 
-        data = {}
-        for key, xpath in self.MODAL_XPATHS.items():
-            element = content_div.find_element(By.XPATH, xpath)
-            value = element.text.strip()
-            data[key] = value
+        title_element = modal_div.find_element(By.XPATH, self.MODAL_TITLE_XPATH)
+        title_value = title_element.text.strip()
+
+        amount_element = modal_div.find_element(By.XPATH, self.MODAL_AMOUNT_XPATH)
+        amount_value = amount_element.text.strip()
+
+        data = {
+            "title": title_value,
+            "amount": amount_value
+        }
+
+        content_div = modal_div.find_element(By.XPATH, self.MODAL_CONTENT_XPATH)
+        self._scrap_modal_content_div(content_div, data)
 
         movement_object = FalabellaMovementInfo(data)
 
         modal.find_element(By.XPATH, ".//button").click()
         return movement_object
+
+    def _scrap_modal_content_div(self, content_div: WebElement, data: Dict[str, str]):
+        content_elements = content_div.find_elements(By.TAG_NAME, "div")
+
+        for element in content_elements:
+            element_class = element.get_attribute("class")
+            if element_class != "pair":
+                continue
+
+            element_key_span = element.find_element(By.XPATH, "./span[1]")
+            element_key_value = element_key_span.text.strip()
+
+            if element_key_value not in self.MODAL_CONTENT_MAPPING:
+                continue
+
+            data_key = self.MODAL_CONTENT_MAPPING[element_key_value]
+            element_value_span = element.find_element(By.XPATH, "./span[2]")
+            element_value = element_value_span.text.strip()
+            data[data_key] = element_value
+
 
     def _find_modal(self, attempt=0) -> WebElement:
         if attempt > self.FIND_MODAL_MAX_TRIES:
@@ -153,7 +185,6 @@ class CMRFalabella():
             return self._find_modal(attempt + 1)
 
         return modal
-
 
     def _get_next_page_button(self) -> WebElement:
         app_last_movements = self.driver.execute_script(

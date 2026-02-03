@@ -1,10 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import ByType
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
-from typing import Tuple
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from logger import logger
 
@@ -37,7 +36,7 @@ class Driver(webdriver.Chrome):
     def wait_clickable(self, element):
         self.wait().until(expected_conditions.element_to_be_clickable(element))
 
-    def wait_visible(self, by: By, value: str):
+    def wait_visible(self, by: ByType, value: str):
         logger.info(f"waiting for visibility of element by {by}, {value}")
         self.wait().until(
             expected_conditions.visibility_of_element_located((by, value))
@@ -47,13 +46,13 @@ class Driver(webdriver.Chrome):
         self.wait().until(expected_conditions.element_to_be_clickable(element))
         element.click()
 
-    def click_by(self, by: By, value: str):
+    def click_by(self, by: ByType, value: str):
         logger.info(f"clicking by {by}, {value}")
         self.wait_visible(by, value)
         element = self.find_element(by=by, value=value)
         self.click_element(element)
 
-    def send_keys_by(self, by: By, value: str, keys: str):
+    def send_keys_by(self, by: ByType, value: str, keys: str):
         logger.info(f"sending keys by {by}, {value}")
         element = self.find_element(by=by, value=value)
         element.send_keys(keys)

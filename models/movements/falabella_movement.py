@@ -4,14 +4,13 @@ from zoneinfo import ZoneInfo
 from typing import Dict, Tuple, List
 import json
 
-
-
 class FalabellaMovementInfo(BaseModel):
+    title: str
     amount: int
     total_amount: int
     current_installment: int
     total_installments: int
-    shop: str
+    shop: str | None
     industry: str
     iso_datetime: str
     country: str
@@ -21,11 +20,12 @@ class FalabellaMovementInfo(BaseModel):
         try:
             installments = self._get_installments(data["installments"])
             return super().__init__(
+                title = data["title"],
                 amount=self._fix_amount(data["amount"]),
                 total_amount=self._fix_amount(data["total_amount"]),
                 current_installment=installments[0],
                 total_installments=installments[1],
-                shop=data["shop"],
+                shop=data.get("shop"),
                 industry=data["industry"],
                 iso_datetime=self._get_iso_datetime(data["date"], data["time"]),
                 country=data["country"],
